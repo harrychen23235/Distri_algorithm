@@ -1,7 +1,8 @@
-run
+compile the program and run main in mainframe.java
 
-```
-start rmiregistry -J-Djava.rmi.server.codebase=[class_folder_path]
-```
+add process number in your parameter ,for example 2 means 2 processes run in parallel
 
-then compile the program and run main in mainframe.java
+if you want to test the correctness of the program, add parameter "basic"
+
+if you want to let program run automatically,use parameter "auto"
+

@@ -8,12 +8,19 @@ public class Message implements Serializable {
     String sender;
     String receiver;
     ArrayList<Integer> timestamp;
-    HashMap<Integer, List<Integer>> message_state;
+    HashMap<String, List<Integer>> message_state;
     int index;
+    int delay;
+
     Message(String t_sender,String t_receiver,int t_index){
         sender = t_sender;
         receiver = t_receiver;
         index = t_index;
+        delay = 0;
+    }
+
+    void set_delay(int number){
+        delay = number;
     }
     void set_timestamp(ArrayList<Integer> clock){
         timestamp = new  ArrayList<Integer>();
@@ -21,12 +28,12 @@ public class Message implements Serializable {
             timestamp.add(clock.get(i));
         }
     }
-    void set_message_state(HashMap<Integer, List<Integer>> input_state) {
-        message_state = new HashMap<Integer, List<Integer>>();
-        Iterator<Entry<Integer,List<Integer>>> t_iter = input_state.entrySet().iterator();
+    void set_message_state(HashMap<String, List<Integer>> input_state) {
+        message_state = new HashMap<String, List<Integer>>();
+        Iterator<Entry<String,List<Integer>>> t_iter = input_state.entrySet().iterator();
         while(t_iter.hasNext()){
-            Entry<Integer,List<Integer>> temp = t_iter.next();
-            int id = temp.getKey();
+            Entry<String,List<Integer>> temp = t_iter.next();
+            String id = temp.getKey();
             List<Integer> content = temp.getValue();
             List<Integer> new_content = new ArrayList<Integer>();
             for(int i=0; i<content.size(); i++){

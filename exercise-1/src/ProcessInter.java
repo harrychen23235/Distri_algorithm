@@ -7,7 +7,9 @@ import java.util.List;
 
 public interface ProcessInter extends Remote{
 
-    public void send(Message message) throws RemoteException;
+    public void send() throws RemoteException;
+
+    public void receive() throws RemoteException;
 
     public void receive(Message message) throws RemoteException;
 
@@ -17,4 +19,9 @@ public interface ProcessInter extends Remote{
 
     public int get_index() throws RemoteException;
 
+    public void reset() throws RemoteException;
+
+    public void add_send_buffer(Message message) throws RemoteException;
+
+    public LinkedList<Message> get_received_messages() throws RemoteException;
 }
