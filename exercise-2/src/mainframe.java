@@ -10,9 +10,12 @@ import java.util.ArrayList;
 public class mainframe {
     public static void main(String args[]) {
         int process_number = 8;
-        String mode = "basic";
-        if(args.length == 1){
+        String mode = "test";
+        if(args.length >= 1){
             process_number = Integer.parseInt(args[0]);
+        }
+        if(args.length == 2){
+            mode = args[1];
         }
         System.out.printf("Process number in total=%d\n",process_number);
         try{
@@ -39,17 +42,17 @@ public class mainframe {
                 Registry registry = LocateRegistry.getRegistry();
                 registry.rebind(Integer.toString(i), stub);
             }
+            System.err.println("Server ready");
             if(mode.equals("auto")) {
                 for (int i = 0; i < process_number; i++) {
                     new Thread((Process) all_process.get(i)).start();
                 }
             }
-            System.err.println("Server ready");
         } catch (Exception e) {
             System.err.println("Server exception: " + e.toString());
             e.printStackTrace();
         }
-        if(!mode.equals("auto")){
+        if(mode.equals("test")){
             Test tmp_test = new Test();
             tmp_test.basic_test(all_name);
             tmp_test.test_1(all_name);

@@ -141,17 +141,13 @@ public class Process extends UnicastRemoteObject implements ProcessInter,Runnabl
             }
             while (true) {
                 synchronized (receive_buffer) {
-                    if (receive_buffer.size() != 0) {
                             receive();
-                    }
                 }
                 synchronized (send_buffer) {
                     random_send(rand.nextInt(5));
-                    if (send_buffer.size() != 0) {
                         while (send_buffer.size() != 0) {
                             send();
                         }
-                    }
                 }
                 try {
                     Thread.sleep(rand.nextInt(1000) + 1000);

@@ -11,9 +11,9 @@ import java.rmi.RMISecurityManager;
 public class mainframe {
     public static void main(String args[]) {
         int process_number = 4;
-        String mode = "basic";
+        String mode = "auto";
 
-        if(args.length == 1){
+        if(args.length >= 1){
             process_number = Integer.parseInt(args[0]);
         }
         if(args.length == 2){
@@ -49,7 +49,7 @@ public class mainframe {
             System.err.println("Server exception: " + e.toString());
             e.printStackTrace();
         }
-        if(!mode.equals("auto")){
+        if(mode.equals("test")){
             Test tmp_test = new Test();
             tmp_test.basic_test(all_name);
             tmp_test.test_1(all_name);

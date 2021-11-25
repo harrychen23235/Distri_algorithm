@@ -29,6 +29,9 @@ public class Process implements ProcessInter,Runnable {
         mode = t_mode;
         has_token_at_first = t_has_token;
         action_finished = 0;
+        if(t_mode.equals("auto")){
+            cycle = Integer.MAX_VALUE;
+        }
         for (int i = 0; i < process_number; i++)
             N.add(0);
         if (t_has_token) {
@@ -59,7 +62,9 @@ public class Process implements ProcessInter,Runnable {
         mode = t_mode;
         has_token_at_first = t_has_token;
         action_finished = 0;
-
+        if(t_mode.equals("auto")){
+            cycle = Integer.MAX_VALUE;
+        }
         for (int i = 0; i < process_number; i++)
             N.add(0);
         if (t_has_token) {
@@ -112,7 +117,7 @@ public class Process implements ProcessInter,Runnable {
         System.out.printf("Process %d send request to Process %d\n", this.index,dst_index);
         ProcessInter des = this.get_process(Integer.toString(dst_index));
         try {
-            des.add_request_buffer(request);
+            des.receive_request(request);
         }
         catch(Exception e){
             System.err.println("Client exception: " + e.toString());
@@ -134,7 +139,7 @@ public class Process implements ProcessInter,Runnable {
         has_token = false;
     }
     public void requesting(){
-            requesting_action();
+        requesting_action();
 
     }
     public void requesting_action(){
@@ -150,14 +155,14 @@ public class Process implements ProcessInter,Runnable {
         }
     }
 
-    public void receive_request_action(Request request){
+    synchronized public void receive_request(Request request){
         int j = request.sender;
         System.out.printf("Process %d receive request from Process %d\n", this.index,j);
         N.set(j, request.request_count);
         switch (S.get(index)){
             case 'E':
             case 'O': S.set(j,'R');
-            break;
+                break;
             case 'R':
                 if(S.get(j)!='R'){
                     S.set(j,'R');
@@ -165,25 +170,18 @@ public class Process implements ProcessInter,Runnable {
                 }
                 break;
             case 'H':
-                S.set(j,'R');
-                S.set(index,'O');
-                my_token.TS.set(j,'R');
-                my_token.TN.set(j, request.request_count);
-                    send_token(my_token,j);
-                break;
+                synchronized (my_token) {
+                    S.set(j, 'R');
+                    S.set(index, 'O');
+                    my_token.TS.set(j, 'R');
+                    my_token.TN.set(j, request.request_count);
+                    send_token(my_token, j);
+                    break;
+                }
 
         }
     }
-    public void receive_request(){
-        synchronized (this.Request_buffer) {
-                Request temp;
-                while (this.Request_buffer.size() != 0) {
-                    temp = (Request) this.Request_buffer.getLast();
-                    this.Request_buffer.removeLast();
-                    this.receive_request_action(temp);
-                }
-            }
-    }
+
     public void execute(){
         try {
             Random rand = new Random();
@@ -201,7 +199,7 @@ public class Process implements ProcessInter,Runnable {
         while (!leave) {
 
             if (action_finished < cycle) {
-                //System.out.printf("Process %d keep waiting for token\n",index);
+                System.out.printf("Process %d keep waiting for token\n",index);
                 if (token_buffer != null) {
                     synchronized (token_buffer) {
                         leave = true;
@@ -220,39 +218,38 @@ public class Process implements ProcessInter,Runnable {
                     var6.printStackTrace();
                 }
             }
-            receive_request();
         }
     }
-    public void receive_token_action(){
+    public void receive_token_action() {
         System.out.printf("Process %d get the token\n", this.index);
-        if(my_token==null) {
+        if (my_token == null) {
             my_token = token_buffer;
             token_buffer = null;
         }
-        has_token = true;
-        S.set(index,'E');
+        synchronized (my_token) {
+            has_token = true;
+            S.set(index, 'E');
 
-        execute();
-        receive_request();
-        S.set(index,'O');
-        my_token.TS.set(index,'O');
-        for(int i=0; i<S.size(); i++){
-            if(N.get(i)>my_token.TN.get(i)){
-                my_token.TN.set(i,N.get(i));
-                my_token.TS.set(i,S.get(i));
+            execute();
+            S.set(index, 'O');
+            my_token.TS.set(index, 'O');
+            for (int i = 0; i < S.size(); i++) {
+                if (N.get(i) > my_token.TN.get(i)) {
+                    my_token.TN.set(i, N.get(i));
+                    my_token.TS.set(i, S.get(i));
+                } else {
+                    N.set(i, my_token.TN.get(i));
+                    S.set(i, my_token.TS.get(i));
+                }
             }
-            else{
-                N.set(i,my_token.TN.get(i));
-                S.set(i,my_token.TS.get(i));
+            for (int i = 0; i < S.size(); i++) {
+                if (S.get(i) == 'R') {
+                    send_token(my_token, i);
+                    return;
+                }
             }
+            S.set(index, 'H');
         }
-        for(int i=0; i<S.size(); i++){
-            if(S.get(i)=='R'){
-                send_token(my_token,i);
-                return;
-            }
-        }
-        S.set(index,'H');
     }
 
     public void wrapper() {
@@ -289,8 +286,9 @@ public class Process implements ProcessInter,Runnable {
             while (true) {
                 if (rand.nextInt() % 5 == 0&& (S.get(index) != 'H' && S.get(index) != 'E') ) {
                     requesting();
+                    receive_token();
                 }
-                receive_token();
+
 
 
 
@@ -306,11 +304,6 @@ public class Process implements ProcessInter,Runnable {
 
         }
     }
-
-
-
-
-
 
 
 
@@ -343,7 +336,7 @@ public class Process implements ProcessInter,Runnable {
     }
 
     public void get_token(Token token){
-        token_buffer = token;
+            token_buffer = token;
     }
 
     public int get_index(){
